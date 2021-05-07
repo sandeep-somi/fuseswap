@@ -1,0 +1,13 @@
+$colors: (
+  primary: #032539,
+  secondary: #1C768F,
+  bg-primary: #FBF3F2,
+  org: #FA991C,
+  white: #FFFFFF,
+  dark: #555555,
+  light-bg: #EEEEEE
+);
+
+@function color($color-name) {
+  @return map-get($colors, $color-name);
+};

@@ -1,0 +1,16 @@
+{
+  "auth": {
+    "email": "Email",
+    "login": "Login",
+    "signup": "Signup",
+    "password": "Password",
+    "confirm-password": "Confirm password",
+    "forgot-password": "Forgot password?",
+    "already-have-an-account": "Already have an account?",
+    "send-link-txt": "We will send a link to your registered email to reset the password soon.",
+    "submit": "Submit",
+    "enter-email-txt": "Enter your email address",
+    "enter-password-txt": "Enter your password",
+    "enter-password-again-txt": "Enter your password again"
+  }
+}

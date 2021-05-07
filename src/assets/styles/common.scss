@@ -1,0 +1,27 @@
+body {
+  margin: 0 auto;
+  background-color: rgb(5, 34, 53);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button:focus {
+  outline: none;
+}
+
+input::-webkit-input-placeholder {
+  color: #565a69;
+}
+input::-moz-placeholder {
+  color: #565a69;
+}
+input:-ms-input-placeholder {
+  color: #565a69;
+}
+input:-moz-placeholder {
+  color: #565a69;
+}
