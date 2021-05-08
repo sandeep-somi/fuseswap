@@ -94,27 +94,29 @@
               button.inner-btn 
                 | Connect Wallet
 
-        //- .footer-result-wrapper
-        //-   .result-wrapper
-        //-     ul
-        //-       li
-        //-         span.title-cus
-        //-           p Minimum Received
-        //-           i.far.fa-question-circle.ml-2
-        //-         span
-        //-           p 404.9 FUSE
-        //-       li
-        //-         span.title-cus
-        //-           p Price Impact
-        //-           i.far.fa-question-circle.ml-2
-        //-         span
-        //-           p.warn 30.30%
-        //-       li
-        //-         span.title-cus
-        //-           p Liquidity Provider Fee
-        //-           i.far.fa-question-circle.ml-2
-        //-         span
-        //-           p 0.50 DAI
+        .footer-result-wrapper(
+          v-show="to && from"
+        )
+          .result-wrapper
+            ul
+              li
+                span.title-cus
+                  p Minimum Received
+                  i.far.fa-question-circle.ml-2
+                span
+                  p 0.00 {{ tokenFrom && tokenFrom.symbol }}
+              li
+                span.title-cus
+                  p Price Impact
+                  i.far.fa-question-circle.ml-2
+                span
+                  p.warn 30.30%
+              li
+                span.title-cus
+                  p Liquidity Provider Fee
+                  i.far.fa-question-circle.ml-2
+                span
+                  p 0.00 {{ tokenTo && tokenTo.symbol }}
 
   b-modal#tokenSelector(
     v-model="tokenSelector"
@@ -162,16 +164,13 @@
 
 </template>
 
-<script lang="ts">
+<script>
 import Vue from "vue"
 import Component from "vue-class-component"
 import { Watch } from "vue-property-decorator"
 import NavBar from "../common/NavBar.vue"
 import './Home.scss'
-import { getData } from '../../apis/home'
-import { getIntersection } from '../../utils'
-import { symbolsToDisplay } from '../../constants'
-import { Token } from './types'
+import { dataToShow } from '../../constants'
 
 @Component({
   components: {
@@ -196,42 +195,18 @@ export default class Home extends Vue {
     },
   ]
 
-  tokens: Token[] = []
-  tokenFrom: Token | null = null
-  tokenTo: Token | null = null
+  tokens = []
+  tokenFrom = null
+  tokenTo = null
   to = null
   from = null
   tokenSelector = false
   target = 'from'
+  timer = null
 
   mounted() {
-    getData()
-      .then((res: any) => {
-        const tempTokens = getIntersection(res.tokens, symbolsToDisplay, 'symbol')
-        /**
-         * Filtering out entries with same name
-         */
-        tempTokens.forEach((item: Token) => {
-          if(!this.tokens.map((item: Token) => item.symbol).includes(item.symbol)) {
-            this.tokens.push(item)
-          }
-        })
-
-        /**
-         * Reorganising list to put fuse to top of the list
-         */
-        const fuseIndex = this.tokens.findIndex((i: Token) => i.symbol.toLowerCase() === 'fuse')
-        if(fuseIndex != -1) {
-          let temp = this.tokens[0]
-          this.tokens[0] = this.tokens[fuseIndex]
-          this.tokens[fuseIndex] = temp
-        }
-
-        this.tokenFrom = this.tokens.find(item => item.symbol === 'FUSE') || null
-      })
-      .catch(err => {
-        console.log(err, 'err')
-      })
+    this.tokens = dataToShow
+    this.tokenFrom = this.tokens.find(item => item.symbol === 'FUSE') || null
   }
 
   swap() {
@@ -244,13 +219,13 @@ export default class Home extends Vue {
     this.from = t
   }
 
-  openSelector(target: string) {
+  openSelector(target) {
     this.target = target
     this.search = ''
     this.tokenSelector = true
   }
 
-  onSelect(token: Token) {
+  onSelect(token) {
     if(token.address === this.tokenFrom?.address || token.address === this.tokenTo?.address) return;
 
     if(this.target == 'from') {
@@ -261,37 +236,57 @@ export default class Home extends Vue {
     this.tokenSelector = false
   }
 
-  getDisabled(token: Token): string {
+  getDisabled(token) {
     if(token.address == this.tokenFrom?.address || token.address == this.tokenTo?.address) {
       return 'disabled'
     }
     return ''
   }
 
+  @Watch('to')
+  onChangeTo(val) {
+    this.handleChangeVal('to')
+  }
+
+  @Watch('from')
+  onChangeFrom(val) {
+    this.handleChangeVal('from')
+  }
+
+  handleChangeVal(type) {
+    if(this.tokenFrom && this.tokenTo && this.from && type === 'from') {
+      const fromVal = this.tokenTo.val
+
+      if(this.timer) {
+        clearTimeout(this.timer)
+      }
+
+      this.timer = setTimeout(() => {
+        this.to = Number((Number(this.from || 0) * Number(fromVal || 0) || null)?.toFixed(5))
+      }, 300)
+    }
+
+    if(this.tokenFrom && this.tokenTo && this.to && type === 'to') {
+      const toVal = this.tokenFrom.val
+
+      if(this.timer) {
+        clearTimeout(this.timer)
+      }
+
+      this.timer = setTimeout(() => {
+        this.to = Number((Number(toVal || 0) * Number(this.to || 0) || null)?.toFixed(5))
+      }, 300)
+    }
+  }
+
   @Watch('tokenFrom')
-  onChangeTokenFrom(token: Token | null) {
-    console.log(token, 'tokenFrom')
+  onChangeTokenFrom(token) {
+    this.handleChangeVal('to')
   }
 
   @Watch('tokenTo')
-  onChangeTokenTo(token: Token | null) {
-    console.log(token, 'tokenTo')
+  onChangeTokenTo(token) {
+    this.handleChangeVal('from')
   }
-}
-
-const temp = {
-    "fUSD": 0.24586,
-    "DAI": 0.253864,
-    "G$": 1116.43,
-    "GRT": 0.165347,
-    "KNC": 0.0707313,
-    "LINK": 0.00499116,
-    "OM": 0.641388,
-    "USDC": 0.239153,
-    "USDT": 0.245659,
-    "WBTC": 0.00000429,
-    "WETH": 0.0000683444,
-    "WFUSE": 1,
-    
 }
 </script>
